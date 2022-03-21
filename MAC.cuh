@@ -1,6 +1,6 @@
 #pragma once
-#ifndef MAC_H
-#define MAC_H
+#ifndef MAC_CUH
+#define MAC_CUH
 
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -18,20 +18,21 @@ private:
 	const unsigned int Nx, Ny, Nz;
 };
 
-MACpoints::MACpoints(unsigned int Nx, unsigned int Ny, unsigned int Nz):
-Nx(Nx), Ny(Ny), Nz(Nz),
-u(Nx*Ny*Nz), uold(Nx*Ny*Nz), m(Nx*Ny*Nz){
-	
-}
-
-MACpoints::~MACpoints(){}
+/*! \enum gridType
+ *
+ *  Descripts the type of each block
+ */
+enum gridType { Empty, Fuild, Solid };
 
 class MAC:private boost::noncopyable{
 public:
 	MAC(unsigned int Nx, unsigned int Ny, unsigned int Nz);
 	virtual ~MAC();
+
+
 	//Have scale Nx*Ny*Nz
-	cudaR::cudaUM<double> pressure, divu;
+	cudaR::cudaUM<float> pressure, divu;
+	cudaR::cudaUM<gridType> blockType;
 	//Have scale Nx*(Ny+1)*(Nz+1)
 	MACpoints x;
 	//Have scale (Nx+1)*Ny*(Nz+1)
@@ -44,30 +45,29 @@ private:
 
 };
 
-MAC::MAC(unsigned int Nx, unsigned int Ny, unsigned int Nz):
-Nx(Nx),Ny(Ny),Nz(Nz),
-pressure(Nx*Ny*Nz), divu(Nx*Ny*Nz),
-x(Nx, Ny+1, Nz+1), y(Nx+1, Ny, Nz+1), z(Nx+1, Ny+1, Nz){
-
-}
-
-MAC::~MAC(){}
-
 class Particles:private boost::noncopyable{
 public:
 	explicit Particles(unsigned int n);
 	virtual ~Particles();
-public:
+
+	//Temperal struct for two floats and one int;
+	struct flflin{
+		float _down;
+		float _up;
+		int _n;
+		flflin(float down, float up, int n){
+			_down = down;
+			_up = up;
+			_n = n;
+		}
+	};
+	void setParticlesUniform(flflin xlim, flflin ylim, flflin zlim);
 	//Have scale n
 	cudaR::cudaUM<float4> position;
 	cudaR::cudaUM<float3> velocity;
+	unsigned int N()const{return _N;}
+private:
+	const unsigned int _N;
 };
 
-Particles::Particles(unsigned int n):
-position(n), velocity(n){
-
-}
-
-Particles::~Particles(){}
-
-#endif /* MAC_H */
+#endif /* MAC_CUH */
