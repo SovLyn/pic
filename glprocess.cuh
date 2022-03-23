@@ -19,17 +19,26 @@
 #include <cuda_gl_interop.h>
 #include "MAC.cuh"
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+#include <fstream>
+//std::stringstream
+#include <sstream>
+
+#define P(x) std::cout<<#x<<" = "<<(x)<<std::endl
+
 extern const unsigned int particleNum;
 
 Particles& getParticles();
+MAC& getMAC();
 
 extern const int windowWidth;
 extern const int windowHeight;
 extern const int refreshDelay;
 
 extern decltype(std::chrono::high_resolution_clock::now()) startTime;
-
-extern Particles& p;
 
 extern int mouseButton;
 extern int mouseTx;
@@ -38,9 +47,15 @@ extern float rotateX;
 extern float rotateY;
 extern float translateZ;
 extern int frames;
-extern unsigned int vbo;
+extern unsigned int VBO[1];
+extern unsigned int VAO[1];
 extern struct cudaGraphicsResource *cudaVboRes;
 
+extern glm::mat4 view, projection;
+extern unsigned int view_loc;
+extern unsigned int projection_loc;
+
+unsigned int create_shader(const std::string& vertex_shader, const std::string& fragment_shader);
 void keyboardOP(unsigned char key, int, int);
 void display();
 void timerEvent(int);

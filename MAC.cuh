@@ -66,6 +66,12 @@ public:
 	cudaR::cudaUM<float4> position;
 	cudaR::cudaUM<float3> velocity;
 	unsigned int N()const{return _N;}
+
+	//apply const force for particles.
+	void applyForce(float3 f, float dt);
+
+	//change the position by velocity.
+	void settle(float dt);
 private:
 	const unsigned int _N;
 };
