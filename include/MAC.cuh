@@ -8,12 +8,15 @@
 #include <boost/core/noncopyable.hpp>
 #include "cudaErrorCheck.cuh"
 
+class MACpoints;
+class MAC;
+class Particles;
+
 class MACpoints:private boost::noncopyable{
 public:
 	MACpoints(unsigned int Nx, unsigned int Ny, unsigned int Nz);
 	virtual ~MACpoints();
-	cudaR::cudaUM<double> u, uold;
-	cudaR::cudaUM<unsigned int> m;
+	cudaR::cudaUM<float> u, uold, m;
 private:
 	const unsigned int Nx, Ny, Nz;
 };
@@ -26,7 +29,7 @@ enum gridType { Empty, Fuild, Solid };
 
 class MAC:private boost::noncopyable{
 public:
-	MAC(unsigned int Nx, unsigned int Ny, unsigned int Nz);
+	MAC(unsigned int Nx, unsigned int Ny, unsigned int Nz, float flip=0.95);
 	virtual ~MAC();
 
 
@@ -40,8 +43,16 @@ public:
 	//Have scale (Nx+1)*(Ny+1)*Nz
 	MACpoints z;
 
+	unsigned int Nx()const{return _Nx;}
+	unsigned int Ny()const{return _Ny;}
+	unsigned int Nz()const{return _Nz;}
+
+	void particlesToGrid(Particles& parts);
+	void gridToParticles(Particles& parts);
+
 private:
-	const unsigned int Nx, Ny, Nz;
+	const unsigned int _Nx, _Ny, _Nz;
+	float _flip;
 
 };
 

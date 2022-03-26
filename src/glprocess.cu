@@ -1,6 +1,5 @@
 #include "glprocess.cuh"
 
-extern const unsigned int particleNum = 5*7*9;
 const int windowWidth = 800;
 const int windowHeight = 800;
 const int refreshDelay = 1;
@@ -25,16 +24,6 @@ unsigned int VAO[1] = {};
 struct cudaGraphicsResource *cudaVboRes;
 
 decltype(std::chrono::high_resolution_clock::now()) startTime = std::chrono::high_resolution_clock::now();
-
-MAC& getMAC(){
-	static MAC mac(20, 20, 20);
-	return mac;
-}
-
-Particles& getParticles(){
-	static Particles p(particleNum);
-	return p;
-}
 
 static unsigned int compile_shader(unsigned int type, const std::string& source){
 	unsigned int id = glCreateShader(type);
@@ -198,10 +187,15 @@ void fluidUpdate(float t){
 	CHECK(cudaGraphicsMapResources(1, &cudaVboRes, 0))
 	CHECK(cudaGraphicsResourceGetMappedPointer((void**)&dptr, &numBytes, cudaVboRes));
 
-	getParticles().applyForce(make_float3(0.001, 0.001, -0.001), t/10.0);
+	getMAC().particlesToGrid(getParticles());
+
+	getMAC().gridToParticles(getParticles());
+
+	getParticles().applyForce(make_float3(0.0, 0.0, -0.001), t/10.0);
 	getParticles().settle(t);
 
 	CHECK(cudaMemcpy(dptr, getParticles().position.p(), getParticles().N()*sizeof(float4), cudaMemcpyDeviceToDevice));
 	CHECK(cudaGraphicsUnmapResources(1, &cudaVboRes, 0));
+//	exit(1);
 }
 

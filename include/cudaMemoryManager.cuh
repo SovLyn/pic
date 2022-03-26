@@ -28,7 +28,7 @@ public:
 	void copyFrom(const T* from, u copyNum=0, u offset=0)const;
 	void copyTo(boost::shared_array<T>& to, u copyNum=0, u offset=0)const;
 	void copyFrom(const boost::shared_array<T>& from, u copyNum=0, u offset=0)const;
-	void setVal(int val=0);
+	void setVal(T val);
 
 private:
 	const u LENGTH;
@@ -82,7 +82,7 @@ void cudaM<T>::copyFrom(const boost::shared_array<T>& from, u copyNum, u offset)
 }
 
 template<typename T>
-void cudaM<T>::setVal(int val){
+void cudaM<T>::setVal(T val){
 	CHECK(cudaMemset(cudaP, val, sizeof(T)*LENGTH));
 }
 
@@ -101,7 +101,7 @@ public:
 	void copyFrom(const T* from, u copyNum=0, u offset=0)const;
 	void copyTo(boost::shared_array<T>& to, u copyNum=0, u offset=0)const;
 	void copyFrom(const boost::shared_array<T>& from, u copyNum=0, u offset=0)const;
-	void setVal(int val=0);
+	void setVal(T val);
 	void prefetch(int count=-1, int dstDevice = 0, cudaStream_t stream = NULL);
 
 private:
@@ -156,7 +156,7 @@ void cudaUM<T>::copyFrom(const boost::shared_array<T>& from, u copyNum, u offset
 }
 
 template<typename T>
-void cudaUM<T>::setVal(int val){
+void cudaUM<T>::setVal(T val){
 	CHECK(cudaMemset(cudaP, val, sizeof(T)*LENGTH));
 }
 

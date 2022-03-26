@@ -1,4 +1,11 @@
-.*
+#Ignore test output.
 a.out
+
+#Ignore example executable file.
 example
+
+#Ignore fast build file.
 build.sh
+
+#Ignore everything in build directory.
+build/
