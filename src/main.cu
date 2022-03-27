@@ -6,7 +6,7 @@
 const unsigned int particleNum = 10*10*10;
 
 MAC& getMAC(){
-	static MAC mac(10, 10, 10, 1);
+	static MAC mac(10, 10, 10, 1.0);
 	return mac;
 }
 
@@ -17,9 +17,9 @@ Particles& getParticles(){
 
 int main(int argc, char *argv[])
 {
-	getParticles().setParticlesUniform(Particles::flflin(0.02, 0.55, 10), 
-			Particles::flflin(0.03, 0.77, 10), 
-			Particles::flflin(0.04, 0.99, 10));
+	getParticles().setParticlesUniform(Particles::flflin(0.1, 5.5, 10), 
+			Particles::flflin(3.1, 7.7, 10), 
+			Particles::flflin(4.1, 9.9, 10));
 	
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
@@ -47,12 +47,12 @@ int main(int argc, char *argv[])
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4*sizeof(float), nullptr);
 	glEnableVertexAttribArray(0);
 
-	std::ifstream vertex_shader_file("../glsl/vertex_shader.glsl");
+	std::ifstream vertex_shader_file("glsl/vertex_shader.glsl");
 	std::stringstream strStream;
 	strStream << vertex_shader_file.rdbuf();
 	std::string vertex_shader_code = strStream.str();
 
-	std::ifstream fragment_shader_file("../glsl/fragment_shader.glsl");
+	std::ifstream fragment_shader_file("glsl/fragment_shader.glsl");
 	strStream.str(std::string());
 	strStream<<fragment_shader_file.rdbuf();
 	std::string fragment_shader_code = strStream.str();

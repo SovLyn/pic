@@ -82,7 +82,7 @@ public:
 	void applyForce(float3 f, float dt);
 
 	//change the position by velocity.
-	void settle(float dt);
+	void settle(float dt, float Mx, float My, float Mz);
 private:
 	const unsigned int _N;
 };

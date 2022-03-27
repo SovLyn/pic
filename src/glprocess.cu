@@ -1,4 +1,5 @@
 #include "glprocess.cuh"
+#include <glm/ext/matrix_transform.hpp>
 
 const int windowWidth = 800;
 const int windowHeight = 800;
@@ -9,7 +10,7 @@ int mouseTx=0;
 int mouseTy=0;
 float rotateX=0.0;
 float rotateY=0.0;
-float translateZ=2.0;
+float translateZ=1.1;
 int frames = 0;
 
 glm::mat4 view = glm::lookAt(glm::vec3(1.0f, 1.0f, 1.0f),
@@ -123,19 +124,14 @@ void display(){
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-//	glMatrixMode(GL_MODELVIEW);
-//	glLoadIdentity();
-//	glTranslatef(0.0, 0.0, translateZ);
-//	glRotatef(rotateY, 1.0, 0.0, 0.0);
-//	glRotatef(rotateX, 0.0, 1.0, 0.0);
-
-	glm::vec3 eye = glm::vec3(0.5f, 0.5f, 0.5f)*translateZ;
+	glm::vec3 center = glm::vec3(float(getMAC().Nx()), float(getMAC().Ny()), float(getMAC().Nz()));
+	glm::vec3 eye = center*translateZ;
 	glm::mat4 rotateMat(1);
 	rotateMat = glm::rotate(rotateMat, -rotateX, glm::vec3(0.0f, 0.0f, 1.0f));
 	rotateMat = glm::rotate(rotateMat, rotateY, glm::vec3(0.0f, 1.0f, 0.0f));
 	eye = glm::vec3(rotateMat*glm::vec4(eye, 1.0f));
-	view = glm::lookAt(eye+glm::vec3(0.5f, 0.5f, 0.5f), 
-					   glm::vec3(0.5f, 0.5f, 0.5f),
+	view = glm::lookAt(eye+center, 
+					   center,
 					   glm::vec3(0.0f, 0.0f, 1.0f));
 	glUniformMatrix4fv(view_loc, 1, GL_FALSE, glm::value_ptr(view));
 	glUniformMatrix4fv(projection_loc, 1, GL_FALSE, glm::value_ptr(projection));
@@ -145,7 +141,7 @@ void display(){
 
 //	glEnableClientState(GL_VERTEX_ARRAY);
 //	glColor3f(0.9, 1.0, 0.0);
-	glPointSize(10);
+	glPointSize(5);
 	glDrawArrays(GL_POINTS, 0, particleNum);
 	frames++;
 //	glDisableClientState(GL_VERTEX_ARRAY);
@@ -184,6 +180,7 @@ void clean(){
 void fluidUpdate(float t){
 	float4 *dptr;
 	size_t numBytes;
+
 	CHECK(cudaGraphicsMapResources(1, &cudaVboRes, 0))
 	CHECK(cudaGraphicsResourceGetMappedPointer((void**)&dptr, &numBytes, cudaVboRes));
 
@@ -191,11 +188,11 @@ void fluidUpdate(float t){
 
 	getMAC().gridToParticles(getParticles());
 
-	getParticles().applyForce(make_float3(0.0, 0.0, -0.001), t/10.0);
-	getParticles().settle(t);
+	getParticles().applyForce(make_float3(0.001, 0.00, -0.00), t);
+	getParticles().settle(t, float(getMAC().Nx()), float(getMAC().Ny()), float(getMAC().Nz()));
+
 
 	CHECK(cudaMemcpy(dptr, getParticles().position.p(), getParticles().N()*sizeof(float4), cudaMemcpyDeviceToDevice));
 	CHECK(cudaGraphicsUnmapResources(1, &cudaVboRes, 0));
-//	exit(1);
 }
 

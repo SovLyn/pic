@@ -19,7 +19,7 @@ MAC::~MAC(){}
 
 static __global__ void quick_divide(float *a, float *b, unsigned int N){
 	const unsigned int tid = blockDim.x*blockIdx.x + threadIdx.x;
-	if (tid<N) {
+	if (tid<N||b[tid]>1e-6) {
 		a[tid]/=b[tid];
 	}
 }
@@ -41,18 +41,18 @@ static __global__ void particlesToGridx(float3 *v,
 
 	//Here to change.
 	int3 corner = make_int3(
-			int(p[tid].x*Nx),
-			int(p[tid].y*Ny+0.5)-1,
-			int(p[tid].z*Nz+0.5)-1
+			int(p[tid].x),
+			int(p[tid].y+0.5)-1,
+			int(p[tid].z+0.5)-1
 			);
 	for (int i = corner.x; i < corner.x+2; ++i) {
 		for (int j = corner.y; j < corner.y+2; ++j) {
 			for (int k = corner.z; k < corner.z+2; ++k) {
-				if(i>=0&&i<Nx+1&&j>=0&&j<Ny&&k>=0&&k<Nz){
+				if(i>=0&&i<(Nx+1)&&j>=0&&j<Ny&&k>=0&&k<Nz){
 					//Here to change
-					float pgx = p[tid].x*Nx;
-					float pgy = p[tid].y*Ny-0.5;
-					float pgz = p[tid].z*Nz-0.5;
+					float pgx = p[tid].x;
+					float pgy = p[tid].y-0.5;
+					float pgz = p[tid].z-0.5;
 					float scale = (1.0-fabsf(pgx-i))*(1.0-fabsf(pgy-j))*(1.0-fabsf(pgz-k));
 //					printf("tid:%d, i:%d, j:%d, k:%d, px:%f, py:%f, pz:%f, fpgx: %f, fpgy: %f, fpgz: %f, scale:%f\n", tid, i, j, k, p[tid].x, p[tid].y, p[tid].z, fabsf(pgx-i), fabsf(pgy-j), fabsf(pgz-k), scale);
 					//Here to change.
@@ -83,18 +83,18 @@ static __global__ void particlesToGridy(float3 *v,
 
 	//Here to change.
 	int3 corner = make_int3(
-			int(p[tid].x*Nx+0.5)-1,
-			int(p[tid].y*Ny),
-			int(p[tid].z*Nz+0.5)-1
+			int(p[tid].x+0.5)-1,
+			int(p[tid].y),
+			int(p[tid].z+0.5)-1
 			);
 	for (int i = corner.x; i < corner.x+2; ++i) {
 		for (int j = corner.y; j < corner.y+2; ++j) {
 			for (int k = corner.z; k < corner.z+2; ++k) {
-				if(i>=0&&i<Nx+1&&j>=0&&j<Ny&&k>=0&&k<Nz){
+				if(i>=0&&i<Nx&&j>=0&&j<(Ny+1)&&k>=0&&k<Nz){
 					//Here to change
-					float pgx = p[tid].x*Nx-0.5;
-					float pgy = p[tid].y*Ny;
-					float pgz = p[tid].z*Nz-0.5;
+					float pgx = p[tid].x-0.5;
+					float pgy = p[tid].y;
+					float pgz = p[tid].z-0.5;
 					float scale = (1.0-fabsf(pgx-i))*(1.0-fabsf(pgy-j))*(1.0-fabsf(pgz-k));
 //					printf("tid:%d, i:%d, j:%d, k:%d, px:%f, py:%f, pz:%f, fpgx: %f, fpgy: %f, fpgz: %f, scale:%f\n", tid, i, j, k, p[tid].x, p[tid].y, p[tid].z, fabsf(pgx-i), fabsf(pgy-j), fabsf(pgz-k), scale);
 					//Here to change.
@@ -125,20 +125,20 @@ static __global__ void particlesToGridz(float3 *v,
 
 	//Here to change.
 	int3 corner = make_int3(
-			int(p[tid].x*Nx+0.5)-1,
-			int(p[tid].y*Ny+0.5)-1,
-			int(p[tid].z*Nz)
+			int(p[tid].x+0.5)-1,
+			int(p[tid].y+0.5)-1,
+			int(p[tid].z)
 			);
 	for (int i = corner.x; i < corner.x+2; ++i) {
 		for (int j = corner.y; j < corner.y+2; ++j) {
 			for (int k = corner.z; k < corner.z+2; ++k) {
-				if(i>=0&&i<Nx+1&&j>=0&&j<Ny&&k>=0&&k<Nz){
+				if(i>=0&&i<Nx&&j>=0&&j<Ny&&k>=0&&k<(Nz+1)){
 					//Here to change
-					float pgx = p[tid].x*Nx;
-					float pgy = p[tid].y*Ny;
-					float pgz = p[tid].z*Nz-0.5;
+					float pgx = p[tid].x;
+					float pgy = p[tid].y;
+					float pgz = p[tid].z-0.5;
 					float scale = (1.0-fabsf(pgx-i))*(1.0-fabsf(pgy-j))*(1.0-fabsf(pgz-k));
-//					printf("tid:%d, i:%d, j:%d, k:%d, px:%f, py:%f, pz:%f, fpgx: %f, fpgy: %f, fpgz: %f, scale:%f\n", tid, i, j, k, p[tid].x, p[tid].y, p[tid].z, fabsf(pgx-i), fabsf(pgy-j), fabsf(pgz-k), scale);
+					//printf("tid:%d, i:%d, j:%d, k:%d, px:%f, py:%f, pz:%f, fpgx: %f, fpgy: %f, fpgz: %f, scale:%f\n", tid, i, j, k, p[tid].x, p[tid].y, p[tid].z, fabsf(pgx-i), fabsf(pgy-j), fabsf(pgz-k), scale);
 					//Here to change.
 					atomicAdd(m+k*((Nx)*(Ny))+j*(Nx)+i, scale);
 					atomicAdd(uz+k*((Nx)*(Ny))+j*(Nx)+i, scale*vz);
@@ -152,9 +152,9 @@ static __global__ void particlesToGridz(float3 *v,
 static __global__ void set_grid_type(gridType *gT, float4 *p, unsigned int pN, unsigned int Nx, unsigned int Ny, unsigned int Nz){
 	const unsigned int tid = blockDim.x*blockIdx.x + threadIdx.x;
 	if (tid<pN) {
-		unsigned int i = int(p[tid].x*Nx);
-		unsigned int j = int(p[tid].y*Ny);
-		unsigned int k = int(p[tid].z*Nz);
+		unsigned int i = int(p[tid].x);
+		unsigned int j = int(p[tid].y);
+		unsigned int k = int(p[tid].z);
 		if (gT[k*Ny*Nx+j*Nx*i] == gridType::Empty) {
 			gT[k*Ny*Nx+j*Nx*i] = gridType::Fuild;
 		}
@@ -227,19 +227,19 @@ static __global__ void gridToParticlesx(float3 *v,
 
 	//Here to change.
 	int3 corner = make_int3(
-			int(p[tid].x*Nx),
-			int(p[tid].y*Ny+0.5)-1,
-			int(p[tid].z*Nz+0.5)-1
+			int(p[tid].x),
+			int(p[tid].y+0.5)-1,
+			int(p[tid].z+0.5)-1
 			);
 
 	for (int i = corner.x; i < corner.x+2; ++i) {
 		for (int j = corner.y; j < corner.y+2; ++j) {
 			for (int k = corner.z; k < corner.z+2; ++k) {
-				if(i>=0&&i<Nx+1&&j>=0&&j<Ny&&k>=0&&k<Nz){
+				if(i>=0&&i<(Nx+1)&&j>=0&&j<Ny&&k>=0&&k<Nz){
 					//Here to change
-					float pgx = p[tid].x*Nx;
-					float pgy = p[tid].y*Ny-0.5;
-					float pgz = p[tid].z*Nz-0.5;
+					float pgx = p[tid].x;
+					float pgy = p[tid].y-0.5;
+					float pgz = p[tid].z-0.5;
 					float scale = (1.0-fabsf(pgx-i))*(1.0-fabsf(pgy-j))*(1.0-fabsf(pgz-k));
 					//Here to change.
 					vx += scale*ux[k*((Nx+1)*Ny)+j*(Nx+1)+i];
@@ -275,19 +275,19 @@ static __global__ void gridToParticlesy(float3 *v,
 
 	//Here to change.
 	int3 corner = make_int3(
-			int(p[tid].x*Nx+0.5)-1,
-			int(p[tid].y*Ny),
-			int(p[tid].z*Nz+0.5)-1
+			int(p[tid].x+0.5)-1,
+			int(p[tid].y),
+			int(p[tid].z+0.5)-1
 			);
 
 	for (int i = corner.x; i < corner.x+2; ++i) {
 		for (int j = corner.y; j < corner.y+2; ++j) {
 			for (int k = corner.z; k < corner.z+2; ++k) {
-				if(i>=0&&i<Nx+1&&j>=0&&j<Ny&&k>=0&&k<Nz){
+				if(i>=0&&i<Nx&&j>=0&&j<(Ny+1)&&k>=0&&k<Nz){
 					//Here to change
-					float pgx = p[tid].x*Nx-0.5;
-					float pgy = p[tid].y*Ny;
-					float pgz = p[tid].z*Nz-0.5;
+					float pgx = p[tid].x-0.5;
+					float pgy = p[tid].y;
+					float pgz = p[tid].z-0.5;
 					float scale = (1.0-fabsf(pgx-i))*(1.0-fabsf(pgy-j))*(1.0-fabsf(pgz-k));
 					//Here to change.
 					vy += scale*uy[k*((Nx)*(Ny+1))+j*(Nx)+i];
@@ -323,19 +323,19 @@ static __global__ void gridToParticlesz(float3 *v,
 
 	//Here to change.
 	int3 corner = make_int3(
-			int(p[tid].x*Nx+0.5)-1,
-			int(p[tid].y*Ny+0.5)-1,
-			int(p[tid].z*Nz)
+			int(p[tid].x+0.5)-1,
+			int(p[tid].y+0.5)-1,
+			int(p[tid].z)
 			);
 
 	for (int i = corner.x; i < corner.x+2; ++i) {
 		for (int j = corner.y; j < corner.y+2; ++j) {
 			for (int k = corner.z; k < corner.z+2; ++k) {
-				if(i>=0&&i<Nx+1&&j>=0&&j<Ny&&k>=0&&k<Nz){
+				if(i>=0&&i<Nx&&j>=0&&j<Ny&&k>=0&&k<(Nz+1)){
 					//Here to change
-					float pgx = p[tid].x*Nx;
-					float pgy = p[tid].y*Ny-0.5;
-					float pgz = p[tid].z*Nz-0.5;
+					float pgx = p[tid].x;
+					float pgy = p[tid].y-0.5;
+					float pgz = p[tid].z-0.5;
 					float scale = (1.0-fabsf(pgx-i))*(1.0-fabsf(pgy-j))*(1.0-fabsf(pgz-k));
 					//Here to change.
 					vz += scale*uz[k*((Nx)*Ny)+j*(Nx)+i];
@@ -353,6 +353,7 @@ static __global__ void gridToParticlesz(float3 *v,
 
 void MAC::gridToParticles(Particles& parts){
 	const int blockSize = 32;
+
 	gridToParticlesx<<<(parts.N()-1)/blockSize+1, blockSize>>>(
 			parts.velocity.p(), parts.position.p(),
 			this->x.u.p(), this->x.uold.p(),
@@ -410,7 +411,7 @@ void Particles::applyForce(float3 f, float dt){
 	particles_apply_force<<<(_N-1)/blockSize+1, blockSize>>>(velocity.p(), f, _N);
 }
 
-static __global__ void particles_settle_kernal(float4 *p, float3 *v, float dt, const unsigned int N){
+static __global__ void particles_settle_kernal(float4 *p, float3 *v, float dt, const unsigned int N, const float Mx, const float My, const float Mz){
 	const unsigned int tid = blockDim.x*blockIdx.x + threadIdx.x;
 	if (tid >= N) {
 		return;
@@ -425,8 +426,8 @@ static __global__ void particles_settle_kernal(float4 *p, float3 *v, float dt, c
 	float vz = v[tid].z;
 
 	px+=vx*dt;
-	if (px > 1.0) {
-		px = 1.0;
+	if (px > Mx) {
+		px = Mx-1e-6;
 		v[tid].x = 0;
 	}else if (px < 0.0) {
 		px = 0.0;
@@ -434,17 +435,17 @@ static __global__ void particles_settle_kernal(float4 *p, float3 *v, float dt, c
 	}
 
 	py+=vy*dt;
-	if (py > 1.0) {
-		py = 1.0;
-		v[tid].y = -vy;
+	if (py > My) {
+		py = My-1e-6;
+		v[tid].y = 0;
 	}else if (py < 0.0) {
 		py = 0.0;
 		v[tid].y = 0;
 	}
 
 	pz+=vz*dt;
-	if (pz > 1.0) {
-		pz = 1.0;
+	if (pz > Mz) {
+		pz = Mz-1e-6;
 		v[tid].z = 0;
 	}else if (pz < 0.0) {
 		pz = 0.0;
@@ -456,7 +457,7 @@ static __global__ void particles_settle_kernal(float4 *p, float3 *v, float dt, c
 	p[tid].z = pz;
 }
 
-void Particles::settle(float dt){
-	const int blockSize = 32;
-	particles_settle_kernal<<<(_N-1)/blockSize+1, blockSize>>>(position.p(), velocity.p(), dt, _N);
+void Particles::settle(float dt, float Mx, float My, float Mz){
+	const int blockSize = 128;
+	particles_settle_kernal<<<(_N-1)/blockSize+1, blockSize>>>(position.p(), velocity.p(), dt, _N, Mx, My, Mz);
 }
