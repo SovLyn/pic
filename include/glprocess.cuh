@@ -29,7 +29,7 @@
 
 #define P(x) std::cout<<#x<<" = "<<(x)<<std::endl
 
-extern const unsigned int particleNum;
+extern const int particleNum;
 
 Particles& getParticles();
 MAC& getMAC();

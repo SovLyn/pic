@@ -3,10 +3,11 @@
 
 #define P(x) std::cout<<#x<<" = "<<(x)<<std::endl
 
-const unsigned int particleNum = 10*10*10;
+const int pperedge = 20;
+const int particleNum = pperedge*pperedge*pperedge;
 
 MAC& getMAC(){
-	static MAC mac(10, 10, 10, 1.0);
+	static MAC mac(50, 50, 50, 0.80);
 	return mac;
 }
 
@@ -17,9 +18,13 @@ Particles& getParticles(){
 
 int main(int argc, char *argv[])
 {
-	getParticles().setParticlesUniform(Particles::flflin(0.1, 5.5, 10), 
-			Particles::flflin(3.1, 7.7, 10), 
-			Particles::flflin(4.1, 9.9, 10));
+	getParticles().setParticlesUniform(Particles::flflin(1.5, getMAC().Nx()/2.0+0.1, pperedge),
+			Particles::flflin(1.5, getMAC().Ny()/2.0+0.1, pperedge),
+			Particles::flflin(getMAC().Nz()/2.0+0.1, getMAC().Nz()-2.5, pperedge));
+
+//	for (int i = 0; i < getParticles().N(); ++i) {
+//		getParticles().velocity.p()[i] = make_float3(0.02, -0.01, 0.03);
+//	}
 	
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
@@ -36,7 +41,7 @@ int main(int argc, char *argv[])
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 
-	glClearColor(0.4, 0.0, 0.7, 1.0);
+	glClearColor(0.4, 0.0, 0.7, 0.95);
 	glEnable(GL_DEPTH_TEST);
 	glViewport(0, 0, windowWidth, windowHeight);
 

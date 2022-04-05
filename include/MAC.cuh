@@ -14,28 +14,29 @@ class Particles;
 
 class MACpoints:private boost::noncopyable{
 public:
-	MACpoints(unsigned int Nx, unsigned int Ny, unsigned int Nz);
+	MACpoints(int Nx, int Ny, int Nz);
 	virtual ~MACpoints();
-	cudaR::cudaUM<float> u, uold, m;
+	cudaR::cudaM<float> u, uold, m;
+	void applyForce(float f);
 private:
-	const unsigned int Nx, Ny, Nz;
+	const int _Nx, _Ny, _Nz;
 };
 
 /*! \enum gridType
  *
  *  Descripts the type of each block
  */
-enum gridType { Empty, Fuild, Solid };
+enum gridType { Empty, Fluid, Solid };
 
 class MAC:private boost::noncopyable{
 public:
-	MAC(unsigned int Nx, unsigned int Ny, unsigned int Nz, float flip=0.95);
+	MAC(int Nx, int Ny, int Nz, float flip=0.95, float rho=1.0);
 	virtual ~MAC();
 
 
 	//Have scale Nx*Ny*Nz
-	cudaR::cudaUM<float> pressure, divu;
-	cudaR::cudaUM<gridType> blockType;
+	cudaR::cudaM<float> pressure, divu;
+	cudaR::cudaM<gridType> blockType;
 	//Have scale Nx*(Ny+1)*(Nz+1)
 	MACpoints x;
 	//Have scale (Nx+1)*Ny*(Nz+1)
@@ -43,22 +44,26 @@ public:
 	//Have scale (Nx+1)*(Ny+1)*Nz
 	MACpoints z;
 
-	unsigned int Nx()const{return _Nx;}
-	unsigned int Ny()const{return _Ny;}
-	unsigned int Nz()const{return _Nz;}
+	int Nx()const{return _Nx;}
+	int Ny()const{return _Ny;}
+	int Nz()const{return _Nz;}
 
 	void particlesToGrid(Particles& parts);
 	void gridToParticles(Particles& parts);
 
+	void solvePressure(const int itN, const float dt);
+
+	void applyForce(float3 f, float dt);
 private:
-	const unsigned int _Nx, _Ny, _Nz;
+	const int _Nx, _Ny, _Nz;
 	float _flip;
+	float _rho;
 
 };
 
 class Particles:private boost::noncopyable{
 public:
-	explicit Particles(unsigned int n);
+	explicit Particles(int n);
 	virtual ~Particles();
 
 	//Temperal struct for two floats and one int;
@@ -74,9 +79,9 @@ public:
 	};
 	void setParticlesUniform(flflin xlim, flflin ylim, flflin zlim);
 	//Have scale n
-	cudaR::cudaUM<float4> position;
-	cudaR::cudaUM<float3> velocity;
-	unsigned int N()const{return _N;}
+	cudaR::cudaM<float4> position;
+	cudaR::cudaM<float3> velocity;
+	int N()const{return _N;}
 
 	//apply const force for particles.
 	void applyForce(float3 f, float dt);
@@ -84,7 +89,7 @@ public:
 	//change the position by velocity.
 	void settle(float dt, float Mx, float My, float Mz);
 private:
-	const unsigned int _N;
+	const int _N;
 };
 
 #endif /* MAC_CUH */

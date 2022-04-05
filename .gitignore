@@ -9,3 +9,8 @@ build.sh
 
 #Ignore everything in build directory.
 build/
+
+#Ignore diagnose file output
+output
+
+**.swp

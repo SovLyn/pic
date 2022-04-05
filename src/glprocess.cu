@@ -1,8 +1,8 @@
 #include "glprocess.cuh"
 #include <glm/ext/matrix_transform.hpp>
 
-const int windowWidth = 800;
-const int windowHeight = 800;
+const int windowWidth = 1000;
+const int windowHeight = 1000;
 const int refreshDelay = 1;
 
 int mouseButton=0;
@@ -16,7 +16,7 @@ int frames = 0;
 glm::mat4 view = glm::lookAt(glm::vec3(1.0f, 1.0f, 1.0f),
 							 glm::vec3(0.5f, 0.5f, 0.5f),
 							 glm::vec3(0.0f, 0.0f, 1.0f));
-glm::mat4 projection = glm::perspective(glm::radians(75.f), 1.f, 0.1f, 100.f); 
+glm::mat4 projection = glm::perspective(glm::radians(75.f), 1.f, 0.1f, 1000.f); 
 unsigned int view_loc;
 unsigned int projection_loc;
 
@@ -141,14 +141,14 @@ void display(){
 
 //	glEnableClientState(GL_VERTEX_ARRAY);
 //	glColor3f(0.9, 1.0, 0.0);
-	glPointSize(5);
+	glPointSize(2);
 	glDrawArrays(GL_POINTS, 0, particleNum);
 	frames++;
 //	glDisableClientState(GL_VERTEX_ARRAY);
 
 	glutSwapBuffers();
 
-	fluidUpdate(timePast.count());
+	fluidUpdate(1.0/60.0);
 }
 
 void createVBO(unsigned int *vbo, struct cudaGraphicsResource **cvr, unsigned int flag){
@@ -178,21 +178,31 @@ void clean(){
 }
 
 void fluidUpdate(float t){
+//	printf("\nframes: %d\n", frames);
 	float4 *dptr;
 	size_t numBytes;
 
 	CHECK(cudaGraphicsMapResources(1, &cudaVboRes, 0))
 	CHECK(cudaGraphicsResourceGetMappedPointer((void**)&dptr, &numBytes, cudaVboRes));
+	int Nx = getMAC().Nx();
+	int Ny = getMAC().Ny();
+	int Nz = getMAC().Nz();
 
 	getMAC().particlesToGrid(getParticles());
+//	getParticles().applyForce(make_float3(0.00, 0.00, -0.01), t);
+	getMAC().applyForce(make_float3(0.00, 0.00, -9.8), t);
 
+	getMAC().solvePressure(80, 1.0);
 	getMAC().gridToParticles(getParticles());
 
-	getParticles().applyForce(make_float3(0.001, 0.00, -0.00), t);
 	getParticles().settle(t, float(getMAC().Nx()), float(getMAC().Ny()), float(getMAC().Nz()));
 
 
 	CHECK(cudaMemcpy(dptr, getParticles().position.p(), getParticles().N()*sizeof(float4), cudaMemcpyDeviceToDevice));
 	CHECK(cudaGraphicsUnmapResources(1, &cudaVboRes, 0));
+
+//	if (frames > 200) {
+//		exit(1);
+//	}
 }
 
