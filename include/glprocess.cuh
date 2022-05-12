@@ -5,13 +5,15 @@
 
 #include <cuda.h>
 #include <cuda_runtime.h>
+
 #include <iostream>
+#include <chrono>
+#include <functional>
 
 #include <GL/freeglut_std.h>
 #include <GL/gl.h>
 #include <GL/glext.h>
 #include <GL/glu.h>
-#include <chrono>
 
 #include <GLFW/glfw3.h>
 #include <GLES3/gl3.h>
@@ -47,13 +49,15 @@ extern float rotateX;
 extern float rotateY;
 extern float translateZ;
 extern int frames;
-extern unsigned int VBO[1];
-extern unsigned int VAO[1];
+extern unsigned int VBO[2];
+extern unsigned int VAO[2];
 extern struct cudaGraphicsResource *cudaVboRes;
 
 extern glm::mat4 view, projection;
 extern unsigned int view_loc;
 extern unsigned int projection_loc;
+
+extern std::function<void(float, float, MAC&)> forceFunc;
 
 unsigned int create_shader(const std::string& vertex_shader, const std::string& fragment_shader);
 void keyboardOP(unsigned char key, int, int);
@@ -65,6 +69,6 @@ void motionOP(int x, int y);
 void createVBO(unsigned int *vbo, struct cudaGraphicsResource **cvr, unsigned int flag);
 void deleteVBO(unsigned int *vbo, struct cudaGraphicsResource **cvr);
 void clean();
-void fluidUpdate(float t);
+void fluidUpdate(float t, float delta_t, std::function<void(float t, float dt, MAC& mac)> forcefunc=nullptr);
 
 #endif /* end of include guard: GLPROCESS_CUH */

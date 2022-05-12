@@ -16,7 +16,7 @@ class MACpoints:private boost::noncopyable{
 public:
 	MACpoints(int Nx, int Ny, int Nz);
 	virtual ~MACpoints();
-	cudaR::cudaM<float> u, uold, m;
+	cudaR::cudaUM<float> u, uold, m;
 	void applyForce(float f);
 private:
 	const int _Nx, _Ny, _Nz;
@@ -35,8 +35,8 @@ public:
 
 
 	//Have scale Nx*Ny*Nz
-	cudaR::cudaM<float> pressure, divu;
-	cudaR::cudaM<gridType> blockType;
+	cudaR::cudaUM<float> pressure, divu;
+	cudaR::cudaUM<gridType> blockType;
 	//Have scale Nx*(Ny+1)*(Nz+1)
 	MACpoints x;
 	//Have scale (Nx+1)*Ny*(Nz+1)
@@ -79,8 +79,8 @@ public:
 	};
 	void setParticlesUniform(flflin xlim, flflin ylim, flflin zlim);
 	//Have scale n
-	cudaR::cudaM<float4> position;
-	cudaR::cudaM<float3> velocity;
+	cudaR::cudaUM<float4> position;
+	cudaR::cudaUM<float3> velocity;
 	int N()const{return _N;}
 
 	//apply const force for particles.

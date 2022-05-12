@@ -1,4 +1,6 @@
 #include "glprocess.cuh"
+#include <GL/gl.h>
+#include <GLES3/gl3.h>
 #include <glm/ext/matrix_transform.hpp>
 
 const int windowWidth = 1000;
@@ -13,6 +15,8 @@ float rotateY=0.0;
 float translateZ=1.1;
 int frames = 0;
 
+std::function<void(float, float, MAC&)> forceFunc=nullptr;
+
 glm::mat4 view = glm::lookAt(glm::vec3(1.0f, 1.0f, 1.0f),
 							 glm::vec3(0.5f, 0.5f, 0.5f),
 							 glm::vec3(0.0f, 0.0f, 1.0f));
@@ -20,8 +24,8 @@ glm::mat4 projection = glm::perspective(glm::radians(75.f), 1.f, 0.1f, 1000.f);
 unsigned int view_loc;
 unsigned int projection_loc;
 
-unsigned int VBO[1] = {};
-unsigned int VAO[1] = {};
+unsigned int VBO[2]={0,};
+unsigned int VAO[2]={0,};
 struct cudaGraphicsResource *cudaVboRes;
 
 decltype(std::chrono::high_resolution_clock::now()) startTime = std::chrono::high_resolution_clock::now();
@@ -136,19 +140,26 @@ void display(){
 	glUniformMatrix4fv(view_loc, 1, GL_FALSE, glm::value_ptr(view));
 	glUniformMatrix4fv(projection_loc, 1, GL_FALSE, glm::value_ptr(projection));
 
+	glBindVertexArray(VAO[0]);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
+	glEnableVertexAttribArray(0);
 //	glVertexPointer(4, GL_FLOAT, 0, 0);
 
 //	glEnableClientState(GL_VERTEX_ARRAY);
 //	glColor3f(0.9, 1.0, 0.0);
-	glPointSize(2);
+	glPointSize(1);
 	glDrawArrays(GL_POINTS, 0, particleNum);
 	frames++;
 //	glDisableClientState(GL_VERTEX_ARRAY);
 
+	glBindVertexArray(VAO[1]);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
+	glEnableVertexAttribArray(1);
+	glDrawArrays(GL_TRIANGLES, 0, 12);
+
 	glutSwapBuffers();
 
-	fluidUpdate(1.0/60.0);
+	fluidUpdate(timePast.count(), 1.0/60.0, forceFunc);
 }
 
 void createVBO(unsigned int *vbo, struct cudaGraphicsResource **cvr, unsigned int flag){
@@ -177,7 +188,7 @@ void clean(){
 	}
 }
 
-void fluidUpdate(float t){
+void fluidUpdate(float t, float delta_t, std::function<void(float, float, MAC&)> forceFunc){
 //	printf("\nframes: %d\n", frames);
 	float4 *dptr;
 	size_t numBytes;
@@ -190,12 +201,16 @@ void fluidUpdate(float t){
 
 	getMAC().particlesToGrid(getParticles());
 //	getParticles().applyForce(make_float3(0.00, 0.00, -0.01), t);
-	getMAC().applyForce(make_float3(0.00, 0.00, -9.8), t);
+	if (forceFunc==nullptr) {
+		getMAC().applyForce(make_float3(0.00, 0.00, -15), delta_t);
+	}else{
+		forceFunc(t, delta_t, getMAC());
+	}
 
 	getMAC().solvePressure(80, 1.0);
 	getMAC().gridToParticles(getParticles());
 
-	getParticles().settle(t, float(getMAC().Nx()), float(getMAC().Ny()), float(getMAC().Nz()));
+	getParticles().settle(delta_t, float(getMAC().Nx()), float(getMAC().Ny()), float(getMAC().Nz()));
 
 
 	CHECK(cudaMemcpy(dptr, getParticles().position.p(), getParticles().N()*sizeof(float4), cudaMemcpyDeviceToDevice));

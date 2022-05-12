@@ -437,27 +437,27 @@ static __global__ void GSiteration(float* divu, float *p, gridType *gT, const in
 		if (gT[index]==gridType::Fluid) {
 			flag|=1<<_fc::isFluid;
 
-			if (i!=1/* && gT[k*(Nx)*(Ny)+j*(Nx)+i-1]!=gridType::Solid*/) {
+			if (i!=1 && gT[k*(Nx)*(Ny)+j*(Nx)+i-1]!=gridType::Solid) {
 				a+=1.0;
 				flag|=1<<_fc::XS;
 			}
-			if (i!=Nx-2/*&& gT[k*(Nx)*(Ny)+j*(Nx)+i+1]!=gridType::Solid*/) {
+			if (i!=Nx-2&& gT[k*(Nx)*(Ny)+j*(Nx)+i+1]!=gridType::Solid) {
 				a+=1.0;
 				flag|=1<<_fc::XP;
 			}
-			if (j!=1/*&& gT[k*(Nx)*(Ny)+(j-1)*(Nx)+i]!=gridType::Solid*/) {
+			if (j!=1&& gT[k*(Nx)*(Ny)+(j-1)*(Nx)+i]!=gridType::Solid) {
 				a+=1.0;
 				flag|=1<<_fc::YS;
 			}
-			if (j!=Ny-2/*&& gT[k*(Nx)*(Ny)+(j+1)*(Nx)+i]!=gridType::Solid*/) {
+			if (j!=Ny-2&& gT[k*(Nx)*(Ny)+(j+1)*(Nx)+i]!=gridType::Solid) {
 				a+=1.0;
 				flag|=1<<_fc::YP;
 			}
-			if (k!=1/*&& gT[(k-1)*(Nx)*(Ny)+j*(Nx)+i]!=gridType::Solid*/) {
+			if (k!=1&& gT[(k-1)*(Nx)*(Ny)+j*(Nx)+i]!=gridType::Solid) {
 				a+=1.0;
 				flag|=1<<_fc::ZS;
 			}
-			if (k!=Nz-2/* && gT[(k+1)*(Nx)*(Ny)+j*(Nx)+i]!=gridType::Solid*/) {
+			if (k!=Nz-2 && gT[(k+1)*(Nx)*(Ny)+j*(Nx)+i]!=gridType::Solid) {
 				a+=1.0;
 				flag|=1<<_fc::ZP;
 			}
